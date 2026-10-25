@@ -14,7 +14,7 @@ Needed by	Sections
 Before Phase 1a step 1	C1 (first estimate), C2 (provider and region), C3
 During Phase 1a	C4, C5, C8, C10 (access management), C12 (token handling)
 Before Phase 2 design	C6, C7
-Before the first hospital contract (Phase 1b step 22)	C1 (confirmed), C9, C10, C11, C13 (signed off)
+Before the first hospital contract (Phase 1b step 23)	C1 (confirmed), C9, C10, C11, C13 (signed off)
 C1. Requirements and targets
 
 Without numbers, pool sizes, replica counts and partitioning are guesses. Fill in the Confirmed column from sales forecasts and the first contracts; until then the proposed values drive sizing.
@@ -88,7 +88,7 @@ An LMS lives on video; these choices shape the storage, CDN and security design 
 
 Upload: large files use S3 multipart upload with presigned part URLs (a single presigned POST is limited to 5 GB). The storage quota reservation (plan Part 7) covers the declared total size; the part URLs are issued only for that reservation.
 Transcoding: AWS Elemental MediaConvert jobs triggered by the files worker after the malware scan, producing HLS with an adaptive bitrate ladder (proposed 240p for weak mobile networks, 360p, 540p, 720p, 1080p) and thumbnails. Captions (WebVTT) are stored alongside. Output is written under the organization's prefix with its KMS key.
-Delivery: CloudFront on the media. hostname with signed cookies scoped to the organization's path (/org/{organizationId}/…), valid for 15 minutes, refreshed by the player through an API call that re-checks authorization. A revoked user therefore loses media access within 15 minutes, matching the access token lifetime. Segments are never public. Because cookie names are fixed, one browser streams for one account at a time; apps use one account at a time anyway.
+Delivery: CloudFront on the media. hostname with signed cookies scoped to one course's path (/org/{organizationId}/course/{courseId}/…, with the cookie Path set to the same prefix so cookies for several courses coexist), valid for 15 minutes, issued and refreshed by the player through an API call that runs AuthorizationService.assert() on that course. A cookie for one course never opens another course's media. A revoked user therefore loses media access within 15 minutes, matching the access token lifetime. Segments are never public. Because cookie names are fixed, one browser streams for one account at a time; apps use one account at a time anyway.
 Quota: renditions count toward the organization's storage quota; originals are kept (proposed) for re-transcoding and also count.
 DRM: not by default. Short-lived signed cookies plus visible watermarking (user id and time, burned in or overlaid) cover most institutional content. If licensed third-party medical content requires DRM, add multi-DRM (Widevine, FairPlay, PlayReady) through a vendor for that content only.
 Offline video on mobile: only where the content license allows; downloads are encrypted at rest in app storage with a key held in the OS keystore, expire with the license, and are deleted on logout or when the app learns the session was revoked.
@@ -137,7 +137,7 @@ C12. Clients (cross-platform)
 
 One API, four kinds of client. These rules keep them secure and usable on real networks.
 
-Web: single-page app on app.; tokens in memory until the httpOnly refresh cookie ships in Phase 1b step 19; strict CSP (no inline script, allowlisted origins, frame-ancestors 'none'); single-flight refresh; rich text and AI markdown rendered through a sanitizer, never as raw HTML.
+Web: single-page app on app.; tokens in memory until the httpOnly refresh cookie ships in Phase 1b step 20; strict CSP (no inline script, allowlisted origins, frame-ancestors 'none'); single-flight refresh; rich text and AI markdown rendered through a sanitizer, never as raw HTML.
 Mobile (Android, iOS) and desktop: refresh token in the OS secure store (Keychain, Android Keystore with hardware backing where available); never in logs, crash reports, screenshots or backups (excluded from cloud backup). Single-flight refresh with the 409 retry handling from plan Part 5. The organization's current slug is updated from login responses (slug aliases, plan Part 5).
 Shared networks: many users arrive from one IP (carrier-grade NAT on Indian mobile networks, hospital gateways). Clients must not treat 429 as fatal: they retry after Retry-After with jitter. Server limits key on account and organization, not only IP (foundation §6.4).
 Deep links: email links (verify, reset, invitation, change email) use verified App Links (Android) and Universal Links (iOS) on app., with the token in the URL fragment. The app reads it locally and posts it; if the app is not installed, the web page does the same.

@@ -1,9 +1,16 @@
 Multi-tenant AI LMS — Phase 1 Security Foundation Plan
 
-Oct 21, 2026 · @Bangalore MedTrain LLP · Revised Oct 24, 2026 (v6, final for Phase 1)
+Oct 21, 2026 · @Bangalore MedTrain LLP · Revised Oct 25, 2026 (v7)
 
 This plan says what Phase 1 builds. The permanent rules for how every module is built are in foundation.md. Infrastructure, capacity, video, real-time, operations, client architecture and accepted residual risks are in system-design.md. Read all three before coding.
 
+Revision notes v7 (Oct 25, 2026)
+Build order reordered so every step uses only what earlier steps built: Redis clients, signed jobs, the email outbox and the audit chain come before identity; sessions come with login; the sentinel check comes with the rebuild job; bulk invitations move to Phase 1b with storage.files. Phase 1a is steps 1–17, Phase 1b steps 18–23.
+User and platform admin session ids are UUIDv7 like every other id.
+Failed-login counters live in redis-cache, keyed by an HMAC of organization and email, and apply equally to unknown accounts, so the progressive delay never reveals which accounts exist.
+Passwords are limited to 72 UTF-8 bytes, because bcrypt ignores the rest.
+Media cookies are scoped to one course, not the whole organization.
+Required tests are numbered.
 Revision notes v6 (Oct 24, 2026)
 DATABASE_TYPE selects the database; postgres is the only supported value outside local development, and the app refuses to start otherwise. New code is Postgres only (Part 1).
 Payment invariants added (binding when billing or paid courses are built).
