@@ -5,15 +5,11 @@ description: Add entities/schemas and properties to existing entities via this p
 
 # Generate Entities and Properties
 
-## Detect the database variant
+## Database variant: always `relational`
 
-Before running any command, grep `package.json` `scripts` to determine `{db}`:
+`{db}` is always `relational` (PostgreSQL/TypeORM). The `all-db` and `document` scripts still exist in `package.json` for the frozen MongoDB variant, but this project never uses them: never run `generate:resource:all-db`, `generate:resource:document`, `add:property:to-all-db` or `add:property:to-document`, and never edit files under `document/` folders (`.claude/CLAUDE.md`, plan Part 1).
 
-- `generate:resource:all-db` present → `{db}` = `all-db` (PostgreSQL + MongoDB).
-- `generate:resource:relational` present (and no `all-db`) → `{db}` = `relational` (PostgreSQL/TypeORM).
-- `generate:resource:document` present (and no `all-db`) → `{db}` = `document` (MongoDB).
-
-Do not ask the user — whichever `generate:resource:*` and `add:property:to-*` scripts remain in `package.json` are exactly the right ones to run.
+After generating, adapt the entity and its migration to foundation §10 (schema, UUIDv7 id, `organization_id`, owner column, composite tenant-aware FKs, RLS, bounded DTOs) and move its repository onto `TenantScopedRepository`.
 
 ## Add an entity/schema
 
@@ -27,7 +23,7 @@ Do not ask the user — whichever `generate:resource:*` and `add:property:to-*` 
 npm run generate:resource:{db} -- --name {EntityName}
 ```
 
-`{db}` comes from the detection section above.
+`{db}` is always `relational` (see above).
 
 Run sequentially, one entity at a time.
 
